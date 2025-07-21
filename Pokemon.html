@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Pokémon Search</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        #pokemon-img { width: 150px; height: 150px; object-fit: contain; }
+        #result { margin-top: 20px; }
+        #error { color: red; margin-top: 10px; }
+        .type { display: inline-block; background: #eee; border-radius: 4px; padding: 2px 8px; margin-right: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Pokémon Search</h1>
+    <input type="text" id="pokemon-input" placeholder="Enter Pokémon name or ID">
+    <button id="search-btn">Search</button>
+    <div id="error"></div>
+    <div id="result"></div>
+
+    <script>
+        const input = document.getElementById('pokemon-input');
+        const button = document.getElementById('search-btn');
+        const resultDiv = document.getElementById('result');
+        const errorDiv = document.getElementById('error');
+
+        async function fetchPokemon(query) {
+            try {
+                errorDiv.textContent = '';
+                resultDiv.innerHTML = '';
+                const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${query.toLowerCase()}`);
+                if (!response.ok) {
+                    throw new Error('Pokémon not found.');
+                }
+                const data = await response.json();
+                displayPokemon(data);
+            } catch (err) {
+                errorDiv.textContent = err.message;
+            }
+        }
+
+        function displayPokemon(data) {
+            const name = data.name.charAt(0).toUpperCase() + data.name.slice(1);
+            const imgUrl = data.sprites.front_default;
+            const types = data.types.map(t => t.type.name);
+
+            resultDiv.innerHTML = `
+                <h2>${name}</h2>
+                <img id="pokemon-img" src="${imgUrl}" alt="${name}">
+                <div>
+                    <strong>Type:</strong>
+                    ${types.map(type => `<span class="type">${type}</span>`).join('')}
+                </div>
+            `;
+        }
+
+        button.addEventListener('click', () => {
+            const query = input.value.trim();
+            if (query) {
+                fetchPokemon(query);
+            }
+        });
+
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                button.click();
+            }
+        });
+    </script>
+</body>
+</html>
